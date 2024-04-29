@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Calculator App</title>
+  <style>
+      body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  font-family: "Arial", sans-serif;
+}
+
+.calculator {
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  width: 300px;
+  overflow: hidden;
+}
+
+.display {
+  padding: 10px;
+  font-size: 1.5em;
+  text-align: right;
+  background-color: #f0f0f0;
+Console
+Clear
+
+Console
+Assets
+Comments
+
+
+  border-bottom: 2px solid #ccc;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+button {
+  padding: 15px;
+  font-size: 1em;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #ddd;
+}
+
+.number {
+  background-color: #fffff;
+  color: #000000;
+}
+
+.operator {
+  background-color: #f4f4f4;
+  color: #000000;
+}
+
+.equal {
+  background-color: #9ebfbe;
+  color: #fff;
+}
+
+.history-btn {
+  background-color: #3498db;
+  color: #fff;
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.clear-history-btn {
+  background-color: #9ebfbe;
+  color: #fff;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #9ebfbe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+  </style> 
+</head>
+
+<body>
+  <div class="calculator">
+    <div class="display" id="display">0</div>
+    <div class="buttons">
+      <button onclick="clearDisplay()" class="operator">C</button>
+      <button onclick="appendNumber('7')" class="number">7</button>
+      <button onclick="appendNumber('8')" class="number">8</button>
+      <button onclick="appendNumber('9')" class="number">9</button>
+      <button onclick="setOperator('/')" class="operator">/</button>
+      <button onclick="appendNumber('4')" class="number">4</button>
+      <button onclick="appendNumber('5')" class="number">5</button>
+      <button onclick="appendNumber('6')" class="number">6</button>
+      <button onclick="setOperator('*')" class="operator">*</button>
+      <button onclick="appendNumber('1')" class="number">1</button>
+      <button onclick="appendNumber('2')" class="number">2</button>
+      <button onclick="appendNumber('3')" class="number">3</button>
+      <button onclick="setOperator('-')" class="operator">-</button>
+      <button onclick="appendNumber('0')" class="number">0</button>
+      <button onclick="appendDecimal()" class="number">.</button>
+      <button onclick="calculate()" class="equal">=</button>
+      <button onclick="setOperator('+')" class="operator">+</button>
+    </div>
+    <button onclick="showHistory()" class="history-btn">History</button>
+    <div id="historyModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeHistoryModal()">&times;</span>
+        <h2>History</h2>
+        <button onclick="clearHistory()" class="clear-history-btn">Clear History</button>
+        <ul id="historyList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+      let displayValue = "0";
+let operator = "";
+let firstOperand = null;
+let waitingForSecondOperand = false;
+let fullExpression = "";
+let history = [];
+
+function updateDisplay() {
+  const display = document.getElementById("display");
+  display.textContent = displayValue;
+}
+
+function clearDisplay() {
+  displayValue = "0";
+  operator = "";
+  firstOperand = null;
+  waitingForSecondOperand = false;
+  fullExpression = "";
+  updateDisplay();
+}
+
+function appendNumber(number) {
+  if (waitingForSecondOperand) {
+    displayValue = number;
+    waitingForSecondOperand = false;
+  } else {
+    displayValue = displayValue === "0" ? number : displayValue + number;
+  }
+  fullExpression += number;
+  updateDisplay();
+}
+
+function appendDecimal() {
+  if (waitingForSecondOperand) {
+    displayValue = "0.";
+    waitingForSecondOperand = false;
+  } else {
+    if (!displayValue.includes(".")) {
+      displayValue += ".";
+      fullExpression += ".";
+    }
+  }
+  updateDisplay();
+}
+
+function setOperator(op) {
+  if (operator && !waitingForSecondOperand) {
+    calculate();
+  }
+  operator = op;
+  firstOperand = parseFloat(displayValue);
+  waitingForSecondOperand = true;
+  fullExpression += " " + op + " ";
+}
+
+function calculate() {
+  const secondOperand = parseFloat(displayValue);
+  if (isNaN(firstOperand) || isNaN(secondOperand)) {
+    clearDisplay();
+    return;
+  }
+  switch (operator) {
+    case "+":
+      displayValue = (firstOperand + secondOperand).toString();
+      break;
+    case "-":
+      displayValue = (firstOperand - secondOperand).toString();
+      break;
+    case "*":
+      displayValue = (firstOperand * secondOperand).toString();
+      break;
+    case "/":
+      if (secondOperand === 0) {
+        clearDisplay();
+        alert("Error: Division by zero");
+        return;
+      }
+      displayValue = (firstOperand / secondOperand).toString();
+      break;
+    default:
+      break;
+  }
+  operator = "";
+  firstOperand = null;
+  waitingForSecondOperand = false;
+  fullExpression += " = " + displayValue;
+  history.push(fullExpression);
+  updateDisplay();
+}
+
+function showHistory() {
+  const historyList = document.getElementById("historyList");
+  historyList.innerHTML = "";
+  history.forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    historyList.appendChild(li);
+  });
+
+  const historyModal = document.getElementById("historyModal");
+  historyModal.style.display = "block";
+}
+
+function closeHistoryModal() {
+  const historyModal = document.getElementById("historyModal");
+  historyModal.style.display = "none";
+}
+
+function clearHistory() {
+  history = [];
+  const historyList = document.getElementById("historyList");
+  historyList.innerHTML = "";
+  closeHistoryModal();
+}
+
+// Initial display update
+updateDisplay();
+  </script>
+
+</body>
+</html>
